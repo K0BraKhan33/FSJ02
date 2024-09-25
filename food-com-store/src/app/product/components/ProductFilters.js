@@ -1,27 +1,39 @@
-// ProductFilters.js
-import CategorySelect from './CategorySelect';
-import SearchBar from './SearchBar';
+// src/app/product/components/ProductFilters.js
 
-export default function ProductFilters({
-  categories,
-  selectedCategory,
-  handleCategoryChange,
-  searchInput,
-  setSearchInput,
-  handleSearch,
-  handleKeyDown,
-  sortOrder,
-  sortDirection,
-  handleSortChange,
-}) {
+import React from 'react';
+
+const ProductFilters = ({ 
+  categories, 
+  selectedCategory, 
+  handleCategoryChange, 
+  sortOrder, 
+  sortDirection, 
+  handleSortChange, 
+  searchInput, 
+  setSearchInput, 
+  handleSearch, 
+  handleKeyDown 
+}) => {
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-4">
-      <CategorySelect
-        categories={categories}
-        selectedCategory={selectedCategory}
-        handleCategoryChange={handleCategoryChange}
-      />
-      
+      {/* Category dropdown */}
+      <div className="w-full md:w-1/3">
+        <select
+          value={selectedCategory}
+          onChange={(e) => handleCategoryChange(e.target.value)}
+          className="w-full p-2 border rounded text-black"
+        >
+          <option value="">All Categories</option>
+          {/* Render categories dynamically here */}
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Sort by dropdown */}
       <div className="w-full md:w-1/3">
         <select
           value={`${sortOrder}:${sortDirection}`}
@@ -36,12 +48,27 @@ export default function ProductFilters({
         </select>
       </div>
 
-      <SearchBar
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        handleSearch={handleSearch}
-        handleKeyDown={handleKeyDown}
-      />
+      {/* Search bar */}
+      <div className="w-full md:w-1/3">
+        <div className="flex">
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Search by product title..."
+            className="w-full p-2 border rounded text-black"
+          />
+          <button
+            onClick={handleSearch}
+            className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Search
+          </button>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default ProductFilters;
