@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image'
 export default function ProductsPage({ searchParams }) {
   // State variables to manage product data, categories, pagination, etc.
   const [products, setProducts] = useState([]);
@@ -320,10 +321,12 @@ export default function ProductsPage({ searchParams }) {
                   order: sortDirection,
                   page
                 })}`}>
-                  <img
+                  <Image
                     src={product.images[imageIndex[product.id] || 0]}
                     alt={product.title}
-                    className="w-full h-48 object-cover rounded"
+                    className="w-[34vw] h-fit object-cover rounded"
+                    width={600}
+                    height={600}
                     loading='lazy'
                   />
                      </Link>

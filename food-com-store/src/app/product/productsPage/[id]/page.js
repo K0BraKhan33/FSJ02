@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 
 export default function ProductDetailsPage({ params }) {
   const { id } = params;
@@ -14,6 +15,8 @@ export default function ProductDetailsPage({ params }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const imageContainerRef = useRef(null);
   const autoScrollTimeout = useRef(null);
+  const [sortedReviews, setSortedReviews] = useState([]);
+  const [sortBy, setSortBy] = useState('date'); // Default sort by date
 
   useEffect(() => {
     async function fetchProduct() {
@@ -23,6 +26,7 @@ export default function ProductDetailsPage({ params }) {
       }
       const data = await res.json();
       setProduct(data);
+      setSortedReviews(data.reviews); // Set reviews initially
     }
     fetchProduct();
   }, [id]);
@@ -41,6 +45,10 @@ export default function ProductDetailsPage({ params }) {
     };
     const queryString = new URLSearchParams(queryParams).toString();
     router.push(`/product/productsPage?${queryString}`);
+  };
+
+  const resetFilters = () => {
+    router.push(`/product/productsPage`); // Redirect to default loaded products
   };
 
   const resetAutoScroll = () => {
@@ -75,6 +83,18 @@ export default function ProductDetailsPage({ params }) {
     resetAutoScroll();
   };
 
+  // Function to sort reviews
+  const sortReviews = (criteria) => {
+    setSortBy(criteria);
+    const sorted = [...(product?.reviews || [])];
+    if (criteria === 'date') {
+      sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } else if (criteria === 'rating') {
+      sorted.sort((a, b) => b.rating - a.rating);
+    }
+    setSortedReviews(sorted);
+  };
+
   if (!product) {
     return <div className="text-center text-red-500">Failed to load product details. Please try again later.</div>;
   }
@@ -88,20 +108,21 @@ export default function ProductDetailsPage({ params }) {
     category,
     tags,
     brand,
-    images
+    images,
+    reviews // Destructure reviews from product data
   } = product;
 
   return (
-    <div className="container mx-auto p-4">
-      <button onClick={handleBackClick} className="bg-blue-500 text-white px-4 py-2 rounded mb-4">
+    <div className="container mx-auto p-4 bg-gray-900 text-gray-200">
+      <button onClick={handleBackClick} className="bg-teal-600 text-white px-4 py-2 rounded mb-4 hover:bg-teal-700">
         Back to Products
       </button>
-      <h1 className="text-2xl font-bold mb-4">{title}</h1>
+      <h1 className="text-3xl font-bold mb-4">{title}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="gallery relative flex flex-col">
           {!imagesLoaded && (
-            <div className="text-center text-blue-500">ProductID {id} found, please wait...</div>
+            <div className="text-center text-teal-400">ProductID {id} found, please wait...</div>
           )}
           <div
             className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4"
@@ -114,11 +135,13 @@ export default function ProductDetailsPage({ params }) {
             {images?.map((img, idx) => (
               <div
                 key={idx}
-                className="flex-shrink-0 w-full h-[full] relative snap-center"
+                className="flex-shrink-0 w-full h-full relative snap-center"
               >
-                <img
+                <Image
                   src={img}
                   alt={title}
+                  width={3000}
+                  height={3000}
                   className="w-full h-full object-cover rounded"
                   onLoad={handleImageLoad}
                   style={{
@@ -132,12 +155,14 @@ export default function ProductDetailsPage({ params }) {
 
           <div className="thumbnails flex space-x-2 mt-4 justify-center">
             {images?.map((img, idx) => (
-              <img
+              <Image
                 key={idx}
                 src={img}
+                width={3000}
+                height={3000}
                 alt={`${title} thumbnail ${idx + 1}`}
                 className={`w-16 h-16 object-cover cursor-pointer rounded border-2 ${
-                  currentImageIndex === idx ? 'border-blue-500' : 'border-transparent'
+                  currentImageIndex === idx ? 'border-teal-600' : 'border-transparent'
                 }`}
                 onClick={() => handleThumbnailClick(idx)}
               />
@@ -148,11 +173,35 @@ export default function ProductDetailsPage({ params }) {
         <div className="md:col-span-1 mt-4 md:mt-0">
           <p className="text-lg font-semibold">Brand: {brand}</p>
           <p className="text-lg font-semibold">Category: {category}</p>
-          <p className="text-lg font-semibold">Price: ${price}</p>
-          <p className="text-lg font-semibold">Rating: {rating} / 5</p>
+          <p className="text-lg font-semibold">Price: <span className="text-teal-500">${price}</span></p>
+          <p className="text-lg font-semibold">Rating: <span className="text-teal-500">{rating} / 5</span></p>
           <p className="text-lg font-semibold">Stock: {stock} units available</p>
           <p className="text-lg mt-4">{description}</p>
           <p className="text-lg font-semibold mt-4">Tags: {tags?.join(', ')}</p>
+
+          {/* Scrollable block of ratings (reviews) */}
+          <div className="reviews mt-6 overflow-y-auto max-h-48 border border-gray-600 rounded p-2">
+            <h2 className="text-lg font-semibold mb-2">Customer Reviews:</h2>
+            <div className="flex justify-between mb-4">
+              <button onClick={() => sortReviews('date')} className={`text-sm ${sortBy === 'date' ? 'font-bold' : 'text-gray-300'}`}>Sort by Date</button>
+              <button onClick={() => sortReviews('rating')} className={`text-sm ${sortBy === 'rating' ? 'font-bold' : 'text-gray-300'}`}>Sort by Rating</button>
+            </div>
+            {sortedReviews?.length > 0 ? (
+              sortedReviews.map((review, index) => (
+                <div key={index} className="border-b py-2 border-gray-600">
+                  <p className="font-semibold">{review.reviewerName} (Rating: {review.rating}/5)</p>
+                  <p className="text-sm">{review.comment}</p>
+                  <p className="text-xs text-gray-400">{new Date(review.date).toLocaleDateString()}</p>
+                </div>
+              ))
+            ) : (
+              <p>No reviews yet.</p>
+            )}
+          </div>
+
+          <button onClick={resetFilters} className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            Reset Filters
+          </button>
         </div>
       </div>
     </div>
