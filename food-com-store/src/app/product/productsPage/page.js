@@ -8,6 +8,13 @@ import ProductFilters from '../components/ProductFilters';
 import ProductList from '../components/ProductList';
 import Pagination from '../components/Pagination';
 import { fetchProducts, fetchCategories, buildQueryString } from './sourceCode';
+/**
+ * ProductsPage component that displays a list of products with filtering, sorting, and pagination.
+ * 
+ * @param {Object} props - The props object.
+ * @param {Object} props.searchParams - The search parameters from the URL.
+ * @returns {JSX.Element} The rendered ProductsPage component.
+ */
 
 export default function ProductsPage({ searchParams }) {
   // State variables
@@ -59,6 +66,10 @@ export default function ProductsPage({ searchParams }) {
     setPage(searchParams.page ? parseInt(searchParams.page, 10) : 1);
   }, [searchParams]);
 
+
+   /**
+   * Handles the search operation by updating the search term and fetching products.
+   */
   const handleSearch = () => {
     setSearchTerm(searchInput);
     const queryString = buildQueryString({
@@ -84,6 +95,11 @@ export default function ProductsPage({ searchParams }) {
     setPage(1);
   };
 
+
+    /**
+   * Handles the change of selected category and fetches products based on it.
+   * @param {string} category - The selected category.
+   */
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
     const queryString = buildQueryString({
@@ -109,7 +125,9 @@ export default function ProductsPage({ searchParams }) {
     setPage(1);
   };
 
-  // Dynamically update the reset button based on the current page
+/**
+   * Resets the filters applied to the product list.
+   */
   const resetFilters = () => {
     setSearchTerm('');
     setSelectedCategory('');
@@ -135,6 +153,11 @@ export default function ProductsPage({ searchParams }) {
     });
   };
 
+
+    /**
+   * Handles changes in the sorting options and fetches products accordingly.
+   * @param {Event} e - The change event.
+   */
   const handleSortChange = (e) => {
     const [sortBy, order] = e.target.value.split(':');
     setSortOrder(sortBy);
@@ -162,6 +185,11 @@ export default function ProductsPage({ searchParams }) {
     setPage(1);
   };
 
+
+    /**
+   * Handles page change for pagination.
+   * @param {number} newPage - The new page number.
+   */
   const handlePageChange = (newPage) => {
     setPage(newPage);
     const queryString = buildQueryString({
@@ -186,11 +214,23 @@ export default function ProductsPage({ searchParams }) {
     });
   };
 
+
+  /**
+   * Handles the key down event to trigger search on Enter key.
+   * @param {Event} e - The key down event.
+   */
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
   };
+
+    /**
+   * Changes the displayed image in the product image carousel.
+   * @param {string} productId - The ID of the product.
+   * @param {string} direction - The direction to change the image ('next' or 'prev').
+   */
 
   const handleImageChange = (productId, direction) => {
     setImageIndex((prevIndex) => {
@@ -208,6 +248,9 @@ export default function ProductsPage({ searchParams }) {
     });
   };
   
+  /**
+   * Navigates back to the previous page.
+   */
   const handleGoBack = () => {
     router.back();
   };

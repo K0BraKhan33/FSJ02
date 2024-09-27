@@ -4,6 +4,15 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
+
+
+/**
+ * ProductDetailsPage component to display detailed information about a specific product.
+ * It includes functionalities for image navigation, sorting reviews, and resetting filters.
+ * 
+ * @param {Object} props - Component props.
+ * @param {Object} props.params - Parameters containing the product ID.
+ */
 export default function ProductDetailsPage({ params }) {
   const { id } = params;
   const searchParams = useSearchParams();

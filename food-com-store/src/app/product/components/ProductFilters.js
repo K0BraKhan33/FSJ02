@@ -1,8 +1,24 @@
-// src/app/product/components/ProductFilters.js
+
 
 import React from 'react';
 
-
+/**
+ * ProductFilters component for filtering and sorting products.
+ *
+ * @param {Object} props - The component props.
+ * @param {Array<string>} props.categories - Array of product categories.
+ * @param {string} props.selectedCategory - Currently selected category.
+ * @param {function} props.handleCategoryChange - Function to handle category change.
+ * @param {string} props.sortOrder - Current sorting order (e.g., price, rating).
+ * @param {string} props.sortDirection - Current sorting direction (asc or desc).
+ * @param {function} props.handleSortChange - Function to handle sort option change.
+ * @param {string} props.searchInput - Current search input value.
+ * @param {function} props.setSearchInput - Function to set search input value.
+ * @param {function} props.handleSearch - Function to execute search.
+ * @param {function} props.handleKeyDown - Function to handle key down events in the search input.
+ * @param {function} props.resetFilters - Function to reset filters to default state.
+ * @returns {JSX.Element} The rendered product filters component.
+ */
 
 const ProductFilters = ({ 
   categories, 

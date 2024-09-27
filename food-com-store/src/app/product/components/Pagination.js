@@ -1,4 +1,13 @@
-// src/app/product/components/Pagination.js
+/**
+ * Pagination component for navigating through product pages.
+ *
+ * @param {Object} props - The component props.
+ * @param {number} props.page - The current page number.
+ * @param {function} props.handlePageChange - Function to handle page change.
+ * @param {number} props.productsLength - Total number of products available.
+ * @param {number} props.limit - Maximum number of products per page.
+ * @returns {JSX.Element} The rendered pagination component.
+ */
 
 import React from 'react';
 

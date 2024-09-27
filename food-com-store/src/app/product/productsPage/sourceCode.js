@@ -1,8 +1,39 @@
-// Helper function to fetch products from API
-export async function fetchProducts({ selectedCategory, searchTerm, sortOrder, sortDirection, page, limit, setLoading, setError, setProducts, setAllSearchResults }) {
+// Cache object to store fetched products and categories
+const cache = {
+    products: {},
+    categories: null,
+  };
+
+  /**
+ * Fetch products from API with caching.
+ *
+ * @param {Object} params - Parameters for fetching products.
+ * @param {string} params.selectedCategory - The category to filter products by.
+ * @param {string} params.searchTerm - The search term to filter products by.
+ * @param {string} params.sortOrder - The field to sort the products by.
+ * @param {string} params.sortDirection - The direction of the sort (asc/desc).
+ * @param {number} params.page - The current page for pagination.
+ * @param {number} params.limit - The number of products per page.
+ * @param {Function} setLoading - Function to set loading state.
+ * @param {Function} setError - Function to set error state.
+ * @param {Function} setProducts - Function to set fetched products.
+ * @param {Function} setAllSearchResults - Function to set all search results.
+ */
+  
+  // Helper function to fetch products from API with caching
+  export async function fetchProducts({ selectedCategory, searchTerm, sortOrder, sortDirection, page, limit, setLoading, setError, setProducts, setAllSearchResults }) {
     setLoading(true);
     setError(null);
     try {
+      const cacheKey = JSON.stringify({ selectedCategory, searchTerm, sortOrder, sortDirection, page, limit });
+      
+      // Return cached products if available
+      if (cache.products[cacheKey]) {
+        setProducts(cache.products[cacheKey]);
+        setLoading(false);
+        return;
+      }
+  
       let apiUrl = 'https://next-ecommerce-api.vercel.app/products?';
       const params = new URLSearchParams();
   
@@ -48,9 +79,13 @@ export async function fetchProducts({ selectedCategory, searchTerm, sortOrder, s
         const end = start + limit;
         setProducts(sortedData.slice(start, end));
         setAllSearchResults(sortedData);
+        // Cache the fetched products
+        cache.products[cacheKey] = sortedData.slice(start, end);
       } else {
         setProducts(data);
         setAllSearchResults([]);
+        // Cache the fetched products
+        cache.products[cacheKey] = data;
       }
     } catch (err) {
       setError(err.message);
@@ -59,13 +94,30 @@ export async function fetchProducts({ selectedCategory, searchTerm, sortOrder, s
     }
   }
   
-  // Helper function to fetch categories
+  // Helper function to fetch categories with caching
   export async function fetchCategories() {
+    // Return cached categories if available
+    if (cache.categories) {
+      return cache.categories; 
+    }
+  
     const res = await fetch('https://next-ecommerce-api.vercel.app/categories');
     if (!res.ok) {
       throw new Error('Failed to fetch categories');
     }
-    return res.json();
+    
+    const data = await res.json();
+    console.log('Categories Data:', data); // Log to see the fetched data
+  
+    // Ensure data is an array
+    if (!Array.isArray(data)) {
+      throw new Error('Categories data is not an array');
+    }
+  
+    // Store fetched categories in cache
+    cache.categories = data;
+  
+    return data;
   }
   
   // Helper function to build query string for URL
