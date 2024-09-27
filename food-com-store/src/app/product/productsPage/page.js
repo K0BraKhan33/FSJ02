@@ -1,6 +1,9 @@
-'use client';
+// app/product/productsPage/page.js
+"use client"; // Mark this component as a Client Component
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Head from 'next/head'; // Import Head for SEO meta tags
 import ProductFilters from '../components/ProductFilters';
 import ProductList from '../components/ProductList';
 import Pagination from '../components/Pagination';
@@ -106,6 +109,32 @@ export default function ProductsPage({ searchParams }) {
     setPage(1);
   };
 
+  // Dynamically update the reset button based on the current page
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('');
+    setSortOrder('');
+    setSortDirection('');
+
+    const queryString = buildQueryString({
+      page,
+    });
+
+    router.push(`/product/productsPage?${queryString}`);
+    fetchProducts({
+      selectedCategory: '',
+      searchTerm: '',
+      sortOrder: '',
+      sortDirection: '',
+      page,
+      limit,
+      setLoading,
+      setError,
+      setProducts,
+      setAllSearchResults,
+    });
+  };
+
   const handleSortChange = (e) => {
     const [sortBy, order] = e.target.value.split(':');
     setSortOrder(sortBy);
@@ -166,14 +195,19 @@ export default function ProductsPage({ searchParams }) {
   const handleImageChange = (productId, direction) => {
     setImageIndex((prevIndex) => {
       const currentIndex = prevIndex[productId] || 0;
-      const imagesCount = products.find((product) => product.id === productId)?.images.length || 0;
-      const newIndex = direction === 'prev'
-        ? (currentIndex - 1 + imagesCount) % imagesCount
-        : (currentIndex + 1) % imagesCount;
+      const imageCount = products.find(product => product.id === productId).images.length;
+  
+      let newIndex;
+      if (direction === 'next') {
+        newIndex = (currentIndex + 1) % imageCount; // Loop back to the first image
+      } else if (direction === 'prev') {
+        newIndex = (currentIndex - 1 + imageCount) % imageCount; // Loop back to the last image if going before the first
+      }
+  
       return { ...prevIndex, [productId]: newIndex };
     });
   };
-
+  
   const handleGoBack = () => {
     router.back();
   };
@@ -194,40 +228,55 @@ export default function ProductsPage({ searchParams }) {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Products</h1>
+    <>
+      <Head>
+        <title>Products - Explore our collection</title>
+        <meta name="description" content="Browse our extensive collection of products. Use filters to find exactly what you need." />
+        <meta name="keywords" content="products, categories, shopping, filters, sorting" />
+        <meta name="author" content="Mikaeel Gamieldien mocK Food commerce store" />
+        <meta property="og:title" content="Products - Explore our collection" />
+        <meta property="og:description" content="Browse our extensive collection of products with advanced filters." />
+        <meta property="og:image" content="/path-to-image.jpg" />
+        <meta property="og:url" content="https://yourdomain.com/product/productsPage" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Head>
 
-      <ProductFilters
-        categories={categories}
-        selectedCategory={selectedCategory}
-        handleCategoryChange={handleCategoryChange}
-        sortOrder={sortOrder}
-        sortDirection={sortDirection}
-        handleSortChange={handleSortChange}
-        searchInput={searchInput}
-        setSearchInput={setSearchInput}
-        handleSearch={handleSearch}
-        handleKeyDown={handleKeyDown}
-      />
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">Products</h1>
 
-      <ProductList
-        products={products}
-        imageIndex={imageIndex}
-        handleImageChange={handleImageChange}
-        selectedCategory={selectedCategory}
-        searchTerm={searchTerm}
-        sortOrder={sortOrder}
-        sortDirection={sortDirection}
-        page={page}
-        buildQueryString={buildQueryString}
-      />
+        <ProductFilters
+          categories={categories}
+          selectedCategory={selectedCategory}
+          handleCategoryChange={handleCategoryChange}
+          sortOrder={sortOrder}
+          sortDirection={sortDirection}
+          handleSortChange={handleSortChange}
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+          handleSearch={handleSearch}
+          handleKeyDown={handleKeyDown}
+          resetFilters={resetFilters}
+        />
 
-      <Pagination
-        page={page}
-        handlePageChange={handlePageChange}
-        productsLength={products.length}
-        limit={limit}
-      />
-    </div>
+        <ProductList
+          products={products}
+          imageIndex={imageIndex}
+          handleImageChange={handleImageChange}
+          selectedCategory={selectedCategory}
+          searchTerm={searchTerm}
+          sortOrder={sortOrder}
+          sortDirection={sortDirection}
+          page={page}
+          buildQueryString={buildQueryString}
+        />
+
+        <Pagination
+          page={page}
+          handlePageChange={handlePageChange}
+          productsLength={products.length}
+          limit={limit}
+        />
+      </div>
+    </>
   );
 }

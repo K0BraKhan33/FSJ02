@@ -8,7 +8,7 @@ export default function ProductDetailsPage({ params }) {
   const { id } = params;
   const searchParams = useSearchParams();
   const router = useRouter();
-  const prePage = searchParams.get('page') || '1'; // Get 'page' from query parameters, default to '1'
+  const prePage = searchParams.get('page') || '1'; // Default page number
   const [product, setProduct] = useState(null);
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
@@ -16,17 +16,23 @@ export default function ProductDetailsPage({ params }) {
   const imageContainerRef = useRef(null);
   const autoScrollTimeout = useRef(null);
   const [sortedReviews, setSortedReviews] = useState([]);
-  const [sortBy, setSortBy] = useState('date'); // Default sort by date
+  const [sortBy, setSortBy] = useState(''); // Default to 'Choose Sort'
+  const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
     async function fetchProduct() {
-      const res = await fetch(`https://next-ecommerce-api.vercel.app/products/${id}`);
-      if (!res.ok) {
-        return;
+      try {
+        setLoading(true); // Set loading to true when fetching starts
+        const res = await fetch(`https://next-ecommerce-api.vercel.app/products/${id}`);
+        if (!res.ok) throw new Error('Failed to fetch product data');
+        const data = await res.json();
+        setProduct(data);
+        setSortedReviews(data.reviews || []); // Initialize sorted reviews
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false); // Set loading to false when fetching is done
       }
-      const data = await res.json();
-      setProduct(data);
-      setSortedReviews(data.reviews); // Set reviews initially
     }
     fetchProduct();
   }, [id]);
@@ -48,7 +54,8 @@ export default function ProductDetailsPage({ params }) {
   };
 
   const resetFilters = () => {
-    router.push(`/product/productsPage`); // Redirect to default loaded products
+    setSortBy(''); // Reset the sort dropdown to default (Choose Sort)
+    setSortedReviews(product?.reviews || []); // Reset reviews to default order (unsorted)
   };
 
   const resetAutoScroll = () => {
@@ -62,19 +69,15 @@ export default function ProductDetailsPage({ params }) {
   useEffect(() => {
     if (!userInteracted && product?.images?.length > 1) {
       const interval = setInterval(() => {
-        setCurrentImageIndex((prevIndex) =>
-          prevIndex + 1 >= product.images.length ? 0 : prevIndex + 1
-        );
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % product.images.length);
       }, 3000);
-
       return () => clearInterval(interval);
     }
   }, [userInteracted, product]);
 
   useEffect(() => {
     if (product?.images?.length > 1 && imageContainerRef.current) {
-      imageContainerRef.current.scrollLeft =
-        currentImageIndex * imageContainerRef.current.offsetWidth;
+      imageContainerRef.current.scrollLeft = currentImageIndex * imageContainerRef.current.offsetWidth;
     }
   }, [currentImageIndex, product]);
 
@@ -83,7 +86,6 @@ export default function ProductDetailsPage({ params }) {
     resetAutoScroll();
   };
 
-  // Function to sort reviews
   const sortReviews = (criteria) => {
     setSortBy(criteria);
     const sorted = [...(product?.reviews || [])];
@@ -94,6 +96,10 @@ export default function ProductDetailsPage({ params }) {
     }
     setSortedReviews(sorted);
   };
+
+  if (loading) {
+    return <div className="text-center text-warm-white">Loading product details...</div>;
+  }
 
   if (!product) {
     return <div className="text-center text-red-500">Failed to load product details. Please try again later.</div>;
@@ -109,12 +115,11 @@ export default function ProductDetailsPage({ params }) {
     tags,
     brand,
     images,
-    reviews // Destructure reviews from product data
   } = product;
 
   return (
-    <div className="container mx-auto p-4 bg-gray-900 text-gray-200">
-      <button onClick={handleBackClick} className="bg-teal-600 text-white px-4 py-2 rounded mb-4 hover:bg-teal-700">
+    <div className="container mx-auto p-4 bg-[#224724] text-warm-white">
+      <button onClick={handleBackClick} className="bg-teal-600 text-warm-white px-4 py-2 rounded mb-4 hover:bg-teal-700">
         Back to Products
       </button>
       <h1 className="text-3xl font-bold mb-4">{title}</h1>
@@ -133,10 +138,7 @@ export default function ProductDetailsPage({ params }) {
             style={{ width: '100%', height: '80vh' }}
           >
             {images?.map((img, idx) => (
-              <div
-                key={idx}
-                className="flex-shrink-0 w-full h-full relative snap-center"
-              >
+              <div key={idx} className="flex-shrink-0 w-full h-full relative snap-center">
                 <Image
                   src={img}
                   alt={title}
@@ -179,17 +181,30 @@ export default function ProductDetailsPage({ params }) {
           <p className="text-lg mt-4">{description}</p>
           <p className="text-lg font-semibold mt-4">Tags: {tags?.join(', ')}</p>
 
-          {/* Scrollable block of ratings (reviews) */}
-          <div className="reviews mt-6 overflow-y-auto max-h-48 border border-gray-600 rounded p-2">
-            <h2 className="text-lg font-semibold mb-2">Customer Reviews:</h2>
-            <div className="flex justify-between mb-4">
-              <button onClick={() => sortReviews('date')} className={`text-sm ${sortBy === 'date' ? 'font-bold' : 'text-gray-300'}`}>Sort by Date</button>
-              <button onClick={() => sortReviews('rating')} className={`text-sm ${sortBy === 'rating' ? 'font-bold' : 'text-gray-300'}`}>Sort by Rating</button>
+          {/* Dropdown for sorting reviews */}
+          <div className="flex justify-between mb-4">
+            <div className="flex space-x-2">
+              <select
+                value={sortBy}
+                onChange={(e) => sortReviews(e.target.value)}
+                className="bg-gray-800 text-warm-white p-2 rounded"
+              >
+                <option value="">Choose Sort</option>
+                <option value="date">Sort by Date</option>
+                <option value="rating">Sort by Rating</option>
+              </select>
+              <button onClick={resetFilters} className="bg-red-600 text-warm-white px-4 py-2 rounded hover:bg-red-700">
+                Reset
+              </button>
             </div>
-            {sortedReviews?.length > 0 ? (
+          </div>
+
+          {/* Reviews */}
+          <div className="reviews mt-6 overflow-y-auto max-h-48 border border-gray-600 rounded p-2">
+            {sortedReviews.length > 0 ? (
               sortedReviews.map((review, index) => (
                 <div key={index} className="border-b py-2 border-gray-600">
-                  <p className="font-semibold">{review.reviewerName} (Rating: {review.rating}/5)</p>
+                  <p className="font-semibold text-darker-orange">{review.reviewerName} (Rating: {review.rating}/5)</p>
                   <p className="text-sm">{review.comment}</p>
                   <p className="text-xs text-gray-400">{new Date(review.date).toLocaleDateString()}</p>
                 </div>
@@ -198,10 +213,6 @@ export default function ProductDetailsPage({ params }) {
               <p>No reviews yet.</p>
             )}
           </div>
-
-          <button onClick={resetFilters} className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-            Reset Filters
-          </button>
         </div>
       </div>
     </div>

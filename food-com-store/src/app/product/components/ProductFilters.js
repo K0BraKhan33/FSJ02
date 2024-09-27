@@ -2,6 +2,8 @@
 
 import React from 'react';
 
+
+
 const ProductFilters = ({ 
   categories, 
   selectedCategory, 
@@ -12,7 +14,8 @@ const ProductFilters = ({
   searchInput, 
   setSearchInput, 
   handleSearch, 
-  handleKeyDown 
+  handleKeyDown,
+  resetFilters
 }) => {
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-4">
@@ -49,7 +52,7 @@ const ProductFilters = ({
       </div>
 
       {/* Search bar */}
-      <div className="w-full md:w-1/3">
+      <div className="w-full md:w-2/3">
         <div className="flex">
           <input
             type="text"
@@ -57,15 +60,20 @@ const ProductFilters = ({
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search by product title..."
-            className="w-full p-2 border rounded text-black"
+            className="w-[25vw] p-2 border rounded text-black"
           />
           <button
             onClick={handleSearch}
-            className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+            className="ml-2 bg-blue-500 w-[7vw] text-white px-4 py-2 rounded"
           >
             Search
           </button>
+          <button onClick={resetFilters} className="ml-2 bg-red-500 text-white px-4 py-2 rounded">
+            Reset Filters
+          </button>
         </div>
+
+      
       </div>
     </div>
   );

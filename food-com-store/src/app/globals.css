@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 241, 235, 226; /* Light earthy tone */
+  --background-start-rgb: 37, 38, 36; /* Dark earthy tone */
+  --background-end-rgb: 114, 96, 69;   /* Medium earthy tone */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --foreground-rgb: 241, 235, 226; /* Light earthy tone for dark mode */
+    --background-start-rgb: 26, 27, 25; /* Darker earthy tone for dark mode */
+    --background-end-rgb: 114, 96, 69;   /* Medium earthy tone for dark mode */
   }
 }
 
